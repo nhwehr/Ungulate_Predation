@@ -1,7 +1,7 @@
 ###### Full analysis for "Interspecific carnivore competition and ungulate predation correlate to predator species richness"
 
 ##### Code written by Nathaniel H. Wehr, Hailey M. Boone, Merijn van den Bosch, and Alejandra Zubiria Perez
-### Last edited on February 23, 2024 ###
+### Last edited on November 13, 2024 ###
 
 # Data Prep ----------
 # Load libraries
@@ -15,7 +15,7 @@ library(ggeffects)
 library(ggpubr)
  
 # Load data
-data <- read.csv("Raw data/Analyzed Dataset - V10.csv", header = T)
+data <- read.csv("Raw data/Analyzed Dataset - V11.csv", header = T)
 
 ## Data manipulation and cleanup
 columns <- c("Grizzly_Bear_Present", "Black_Bear_Present", "Mountain_Lion_Present", 
@@ -152,7 +152,8 @@ ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
   geom_line(aes(col=Age_Class), linewidth = 0.75) + 
   facet_wrap("Predator_Common") +
   mytheme +
-  labs(y="Proportion predation",
+  labs(y="Elk
+       Proportion predation",
        x="Number of predators", col="Age class",
        fill="Age class") +
   scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
@@ -189,7 +190,8 @@ ggplot(data=pred, aes(x = Number_of_Relevant_Predators)) +
  geom_errorbar(aes(ymin = low_trans, ymax = up_trans, color = Age_Class), width = 0.2, position = position_dodge(0.25)) +
  facet_wrap("Predator_Common") +
  mytheme +
- labs(y = "Proportion predation",
+ labs(y = "Moose
+      Proportion predation",
       x = "Number of predators",
       color = "Age class") +
  scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
@@ -226,7 +228,8 @@ ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
   geom_line(aes(col=Age_Class), linewidth = 0.75) + 
   facet_wrap("Predator_Common") +
   mytheme +
-  labs(y="Proportion predation",
+  labs(y="Mule deer
+       Proportion predation",
        x="Number of predators", col="Age class",
        fill="Age class") +
   scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
@@ -272,7 +275,8 @@ ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
   geom_line(aes(col=Age_Class), linewidth = 0.75) + 
   facet_wrap("Predator_Common") +
   mytheme +
-  labs(y="Predation proportion",
+  labs(y="White-tailed deer
+       Predation proportion",
        x="Predator species richness", col="Age class",
        fill="Age class") +
   scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
@@ -346,7 +350,8 @@ ggplot(data=pred, aes(x=Average_Terrain_Ruggedness, y=fit_trans)) +
   geom_line(aes(col=Age_Class), linewidth = 0.75) + 
   facet_wrap("Predator_Common") +
   mytheme +
-  labs(y="Proportion predation",
+  labs(y="Caribou
+       Proportion predation",
        x="TRI", col="Age class",
        fill="Age class") +
   scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
@@ -383,7 +388,8 @@ ggplot(data=pred, aes(x=Average_Terrain_Ruggedness, y=fit_trans)) +
   geom_line(aes(col=Age_Class), linewidth = 0.75) + 
   facet_wrap("Predator_Common") +
   mytheme +
-  labs(y="Predation proportion",
+  labs(y="Caribou
+       Predation proportion",
        x="TRI", col="Age class",
        fill="Age class") +
   scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
