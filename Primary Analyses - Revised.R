@@ -1,7 +1,7 @@
 ###### Full analysis for "Interspecific carnivore competition and ungulate predation correlate to predator species richness"
 
 ##### Code written by Nathaniel H. Wehr, Hailey M. Boone, Merijn van den Bosch, and Alejandra Zubiria Perez
-### Last edited on November 13, 2024 ###
+### Last edited on 6 March 2025 ###
 
 # Data Prep ----------
 # Load libraries
@@ -71,7 +71,7 @@ covcortest <- cor(preddata[,c("Number_of_Relevant_Predators","Number_of_Ungulate
 corrplot(covcortest)
 covcortest
 
-# Model 1 ---------------
+# Model 1 ----------
 # Import data
 alldata <- data
 
@@ -106,31 +106,29 @@ split_data <- lapply(common_names, function(name) {
 list2env(setNames(split_data, paste0(df_names, "1")), envir = .GlobalEnv)
 
 ## Bighorn ----------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+mod1b <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights = Predation,
                 data = Bighorn1)
-summary(mod1) 
+summary(mod1b) 
 # Analysis was concluded:
 #all models have the same number of relevant predators
 
-## Caribou ------------------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+## Caribou ----------
+mod1c <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Caribou1)
-summary(mod1)
-# analysis was concluded:
-#model 3 was better fitting for Caribou
+summary(mod1c)
 
-## Elk ------------------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+## Elk ----------
+mod1e <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Elk1)
-summary(mod1)
+summary(mod1e)
 
-### Plot --------------------------------
+### Plot ----------
 tp <- range(Elk1$Number_of_Relevant_Predators)
 nd <- expand.grid(Predator_Common = factor(levels(Elk1$Predator_Common), levels = levels(Elk1$Predator_Common)),
                   Age_Class = factor(levels(Elk1$Age_Class), levels = levels(Elk1$Age_Class)),
@@ -138,7 +136,7 @@ nd <- expand.grid(Predator_Common = factor(levels(Elk1$Predator_Common), levels 
   mutate(random = levels(Elk1$random)[1],  # Set random to a default value
          Predation = 0) # Set Predation to 0
 
-pred <- predict(mod1, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+pred <- predict(mod1e, newdata = nd, se.fit = TRUE, re.form = NA) %>%
   as.data.frame() %>%
   mutate(lower = fit - 1.96 * se.fit,
          upper = fit + 1.96 * se.fit,
@@ -161,130 +159,37 @@ ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
   scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
 ggsave("Figures/Elk - Model 1.jpg", width = 6, height = 6, dpi = 700)
 
-## Moose -----------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+## Moose ----------
+mod1m <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Moose1)
-summary(mod1)
+summary(mod1m)
 
-### Plot -------------------
-tp <- range(Moose1$Number_of_Relevant_Predators)
-nd <- expand.grid(Predator_Common = factor(levels(Moose1$Predator_Common), levels = levels(Moose1$Predator_Common)),
-                  Age_Class = factor(levels(Moose1$Age_Class), levels = levels(Moose1$Age_Class)),
-                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
-  mutate(random = levels(Moose1$random)[1], 
-         Predation = 0) 
-
-pred <- predict(mod1, newdata = nd, se.fit = TRUE, re.form = NA) %>%
-  as.data.frame() %>%
-  mutate(lower = fit - 1.96 * se.fit,
-         upper = fit + 1.96 * se.fit,
-         fit_trans = plogis(fit),
-         low_trans = plogis(lower),
-         up_trans = plogis(upper)) %>%
-  bind_cols(nd)
-
-ggplot(data=pred, aes(x = Number_of_Relevant_Predators)) + 
- geom_point(aes(y = fit_trans, color = Age_Class), position = position_dodge(0.25)) +
- geom_errorbar(aes(ymin = low_trans, ymax = up_trans, color = Age_Class), width = 0.2, position = position_dodge(0.25)) +
- facet_wrap("Predator_Common") +
- mytheme +
- labs(y = "Moose
-      Proportion predation",
-      x = "Number of predators",
-      color = "Age class") +
- scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
- scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
- scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
-ggsave("Figures/Moose - Model 1.jpg", width = 6, height = 4, dpi = 700)
-
-## Mule deer ------------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+## Mule deer ----------
+mod1md <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Muledeer1)
-summary(mod1)
+summary(mod1md)
 
-### Plot -------------------
-tp <- range(Muledeer1$Number_of_Relevant_Predators)
-nd <- expand.grid(Predator_Common = factor(levels(Muledeer1$Predator_Common), levels = levels(Muledeer1$Predator_Common)),
-                  Age_Class = factor(levels(Muledeer1$Age_Class), levels = levels(Muledeer1$Age_Class)),
-                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
-  mutate(random = levels(Muledeer1$random)[1], 
-         Predation = 0) 
-
-pred <- predict(mod1, newdata = nd, se.fit = TRUE, re.form = NA) %>%
-  as.data.frame() %>%
-  mutate(lower = fit - 1.96 * se.fit,
-         upper = fit + 1.96 * se.fit,
-         fit_trans = plogis(fit),
-         low_trans = plogis(lower),
-         up_trans = plogis(upper)) %>%
-  bind_cols(nd)
-
-ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
-  geom_ribbon(aes(ymin=low_trans, ymax=up_trans, fill=Age_Class), alpha=0.2) +
-  geom_line(aes(col=Age_Class), linewidth = 0.75) + 
-  facet_wrap("Predator_Common") +
-  mytheme +
-  labs(y="Mule deer
-       Proportion predation",
-       x="Number of predators", col="Age class",
-       fill="Age class") +
-  scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
-  scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
-  scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
-ggsave("Figures/Muledeer - Model 1.jpg", width = 6, height = 6, dpi = 700)
-
-## Pronghorn ------------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+## Pronghorn ----------
+mod1p <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Pronghorn1)
-summary(mod1)
+summary(mod1p)
 # Analysis was concluded:
 #all models have the same number of relevant predators
 
 ## Whitetail ----------------
-mod1 <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+mod1w <- glmmTMB(PredPropMort ~ Age_Class*Predator_Common + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Predation,
                 data=Whitetail1)
-summary(mod1)
+summary(mod1w)
 
-### Plot -------------------
-tp <- range(Whitetail1$Number_of_Relevant_Predators)
-nd <- expand.grid(Predator_Common = factor(levels(Whitetail1$Predator_Common), levels = levels(Whitetail1$Predator_Common)),
-                  Age_Class = factor(levels(Whitetail1$Age_Class), levels = levels(Whitetail1$Age_Class)),
-                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
-  mutate(random = levels(Whitetail1$random)[1], 
-         Predation = 0) 
-
-pred <- predict(mod1, newdata = nd, se.fit = TRUE, re.form = NA) %>%
-  as.data.frame() %>%
-  mutate(lower = fit - 1.96 * se.fit,
-         upper = fit + 1.96 * se.fit,
-         fit_trans = plogis(fit),
-         low_trans = plogis(lower),
-         up_trans = plogis(upper)) %>%
-  bind_cols(nd)
-
-ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
-  geom_ribbon(aes(ymin=low_trans, ymax=up_trans, fill=Age_Class), alpha=0.2) +
-  geom_line(aes(col=Age_Class), linewidth = 0.75) + 
-  facet_wrap("Predator_Common") +
-  mytheme +
-  labs(y="White-tailed deer
-       Predation proportion",
-       x="Predator species richness", col="Age class",
-       fill="Age class") +
-  scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
-  scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
-  scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
-ggsave("Figures/Whitetail - Model 1.jpg", width = 6, height = 6, dpi = 700)
-
-# Models 2-4 ---------------
+# Models 2-7 ----------
 # Prep
 prediction3data <- preddata %>%
   mutate(Percent_Forest_Cover = Percent_Forest_Cover * 100)
@@ -302,26 +207,37 @@ split_data <- lapply(common_names, function(name) {
 
 list2env(setNames(split_data, paste0(df_names, "3")), envir = .GlobalEnv)
 
-## Bighorn --------------
-# Analysis was not run because the number of relevant predators was equal at all sites
-
 ## Caribou --------------
-mod3HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+mod2HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Caribou3)
-summary(mod3HFI)
-
-mod3PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
-                   betabinomial(link = "logit"),
-                   weights=Predation,
-                   data=Caribou3)
-summary(mod3PFC)
+summary(mod2HFI)
 mod3TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Caribou3)
 summary(mod3TRI)
+mod4PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Caribou3)
+summary(mod4PFC)
+mod5HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Caribou3)
+summary(mod5HFI)
+mod6TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Caribou3)
+summary(mod6TRI)
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Caribou3)
+summary(mod7PFC)
 
 ### Plot --------------
 tt <- range(Caribou3$Number_of_Relevant_Predators)
@@ -397,85 +313,266 @@ ggplot(data=pred, aes(x=Average_Terrain_Ruggedness, y=fit_trans)) +
 ggsave("Figures/Caribou - Model 3.jpg", width = 6, height = 4, dpi = 700)
 
 ## Elk -----------------
-mod3HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+mod2HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Elk3)
-summary(mod3HFI)
-mod3PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
-                   betabinomial(link = "logit"),
-                   weights=Predation,
-                   data=Elk3)
-summary(mod3PFC)
+summary(mod2HFI)
 mod3TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Elk3)
 summary(mod3TRI)
-# Analysis was concluded:
-#Model 1 AIC was better than Models 2-4
+mod4PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Elk3)
+summary(mod4PFC)
+mod5HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Elk3)
+summary(mod5HFI)
+mod6TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Elk3)
+summary(mod6TRI)
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Elk3)
+summary(mod7PFC)
 
 ## Moose ---------------
-mod3HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+mod2HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Moose3)
-summary(mod3HFI)
-mod3PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
-                   betabinomial(link = "logit"),
-                   weights=Predation,
-                   data=Moose3)
-summary(mod3PFC)
+summary(mod2HFI)
 mod3TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Moose3)
 summary(mod3TRI)
-# Analysis was concluded:
-#Model 1 AIC was better than Models 2-4
+mod4PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Moose3)
+summary(mod4PFC)
+mod5HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Moose3)
+summary(mod5HFI)
+mod6TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Moose3)
+summary(mod6TRI)
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Moose3)
+summary(mod7PFC)
+
+### Plot -------------------
+#model1 was used for plotting to avoid noise created by HFI as a nonsignificant predictor
+tp <- range(Moose1$Number_of_Relevant_Predators)
+nd <- expand.grid(Predator_Common = factor(levels(Moose1$Predator_Common), levels = levels(Moose1$Predator_Common)),
+                  Age_Class = factor(levels(Moose1$Age_Class), levels = levels(Moose1$Age_Class)),
+                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
+ mutate(random = levels(Moose1$random)[1], 
+        Predation = 0) 
+
+pred <- predict(mod1m, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+ as.data.frame() %>%
+ mutate(lower = fit - 1.96 * se.fit,
+        upper = fit + 1.96 * se.fit,
+        fit_trans = plogis(fit),
+        low_trans = plogis(lower),
+        up_trans = plogis(upper)) %>%
+ bind_cols(nd)
+
+ggplot(data=pred, aes(x = Number_of_Relevant_Predators)) + 
+ geom_point(aes(y = fit_trans, color = Age_Class), position = position_dodge(0.25)) +
+ geom_errorbar(aes(ymin = low_trans, ymax = up_trans, color = Age_Class), width = 0.2, position = position_dodge(0.25)) +
+ facet_wrap("Predator_Common") +
+ mytheme +
+ labs(y = "Moose
+      Proportion predation",
+      x = "Number of predators",
+      color = "Age class") +
+ scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
+ scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
+ scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
+ggsave("Figures/Moose - Model 1-5.jpg", width = 6, height = 4, dpi = 700)
 
 ## Mule deer ---------------
-mod3HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+mod2HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Muledeer3)
-summary(mod3HFI)
-mod3PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
-                   betabinomial(link = "logit"),
-                   weights=Predation,
-                   data=Muledeer3)
-summary(mod3PFC)
+summary(mod2HFI)
 mod3TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Muledeer3)
 summary(mod3TRI)
-# Analysis was concluded:
-#Model 1 AIC was better than Models 2-4
+mod4PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Muledeer3)
+summary(mod4PFC)
+mod5HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Muledeer3)
+summary(mod5HFI)
+mod6TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Muledeer3)
+summary(mod6TRI)
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Muledeer3)
+summary(mod7PFC)
 
-## Pronghorn ---------------
-# Analysis was not run because the number of relevant predators was equal at all sites
+### Plot ----------
+#Model1 was used to remove noise associated with percent forest cover, and a separate plot was used for percent forest cover
+tp <- range(Muledeer1$Number_of_Relevant_Predators)
+nd <- expand.grid(Predator_Common = factor(levels(Muledeer1$Predator_Common), levels = levels(Muledeer1$Predator_Common)),
+                  Age_Class = factor(levels(Muledeer1$Age_Class), levels = levels(Muledeer1$Age_Class)),
+                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
+ mutate(random = levels(Muledeer1$random)[1], 
+        Predation = 0) 
 
-## Whitetail -------------------------
-mod3HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+pred <- predict(mod1md, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+ as.data.frame() %>%
+ mutate(lower = fit - 1.96 * se.fit,
+        upper = fit + 1.96 * se.fit,
+        fit_trans = plogis(fit),
+        low_trans = plogis(lower),
+        up_trans = plogis(upper)) %>%
+ bind_cols(nd)
+
+ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
+ geom_ribbon(aes(ymin=low_trans, ymax=up_trans, fill=Age_Class), alpha=0.2) +
+ geom_line(aes(col=Age_Class), linewidth = 0.75) + 
+ facet_wrap("Predator_Common") +
+ mytheme +
+ labs(y="Mule deer
+       Proportion predation",
+      x="Number of predators", col="Age class",
+      fill="Age class") +
+ scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
+ scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
+ scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
+ggsave("Figures/Muledeer - Model 1-7.jpg", width = 6, height = 6, dpi = 700)
+
+### Plot ----------
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Muledeer3)
+tp <- range(Muledeer3$Percent_Forest_Cover)
+nd <- expand.grid(Predator_Common = factor(levels(Muledeer1$Predator_Common), levels = levels(Muledeer1$Predator_Common)),
+                  Age_Class = factor(levels(Muledeer1$Age_Class), levels = levels(Muledeer1$Age_Class)),
+                  Percent_Forest_Cover = seq(tp[1], tp[2], by = 1)) %>%
+ mutate(random = levels(Muledeer3$random)[1], 
+        Predation = 0) 
+
+pred <- predict(mod7PFC, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+ as.data.frame() %>%
+ mutate(lower = fit - 1.96 * se.fit,
+        upper = fit + 1.96 * se.fit,
+        fit_trans = plogis(fit),
+        low_trans = plogis(lower),
+        up_trans = plogis(upper)) %>%
+ bind_cols(nd)
+
+ggplot(data=pred, aes(x=Percent_Forest_Cover, y=fit_trans)) +
+ geom_ribbon(aes(ymin=low_trans, ymax=up_trans, fill=Age_Class), alpha=0.2) +
+ geom_line(aes(col=Age_Class), linewidth = 0.75) + 
+ facet_wrap("Predator_Common") +
+ mytheme +
+ labs(y="Mule deer
+       Proportion predation",
+      x="Proportion forest cover", col="Age class",
+      fill="Age class") +
+ #scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
+ scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
+ scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
+ggsave("Figures/Muledeer - Model 7PFC.jpg", width = 6, height = 6, dpi = 700)
+
+## Whitetail ----------
+mod2HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Whitetail3)
-summary(mod3HFI)
-mod3PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
-                   betabinomial(link = "logit"),
-                   weights=Predation,
-                   data=Whitetail3)
-summary(mod3PFC)
+summary(mod2HFI)
 mod3TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                    betabinomial(link = "logit"),
                    weights=Predation,
                    data=Whitetail3)
 summary(mod3TRI)
-# Analysis was concluded:
-#Model 1 AIC was better than Models 2-4
+mod4PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover * Predator_Common + Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Whitetail3)
+summary(mod4PFC)
+mod5HFI <- glmmTMB(PredPropMort ~ Human_Footprint_Index + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Whitetail3)
+summary(mod5HFI)
+mod6TRI <- glmmTMB(PredPropMort ~ Average_Terrain_Ruggedness + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Whitetail3)
+summary(mod6TRI)
+mod7PFC <- glmmTMB(PredPropMort ~ Percent_Forest_Cover + Predator_Common*Age_Class + Number_of_Relevant_Predators + (1|random) + (1|Midpoint_Year),
+                   betabinomial(link = "logit"),
+                   weights=Predation,
+                   data=Whitetail3)
+summary(mod7PFC)
 
-# Model 5 --------------------------------------------------------
+### Plot ----------
+#model1 plot was used to avoid noise resulting from insignificant HFI values
+tp <- range(Whitetail1$Number_of_Relevant_Predators)
+nd <- expand.grid(Predator_Common = factor(levels(Whitetail1$Predator_Common), levels = levels(Whitetail1$Predator_Common)),
+                  Age_Class = factor(levels(Whitetail1$Age_Class), levels = levels(Whitetail1$Age_Class)),
+                  Number_of_Relevant_Predators = seq(tp[1], tp[2], by = 1)) %>%
+ mutate(random = levels(Whitetail1$random)[1], 
+        Predation = 0) 
+
+pred <- predict(mod1w, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+ as.data.frame() %>%
+ mutate(lower = fit - 1.96 * se.fit,
+        upper = fit + 1.96 * se.fit,
+        fit_trans = plogis(fit),
+        low_trans = plogis(lower),
+        up_trans = plogis(upper)) %>%
+ bind_cols(nd)
+
+ggplot(data=pred, aes(x=Number_of_Relevant_Predators, y=fit_trans)) +
+ geom_ribbon(aes(ymin=low_trans, ymax=up_trans, fill=Age_Class), alpha=0.2) +
+ geom_line(aes(col=Age_Class), linewidth = 0.75) + 
+ facet_wrap("Predator_Common") +
+ mytheme +
+ labs(y="White-tailed deer
+       Predation proportion",
+      x="Predator species richness", col="Age class",
+      fill="Age class") +
+ scale_x_continuous(breaks=c(0,1,2,3,4,5)) +
+ scale_color_manual(values = c("#1F78B4", "#7FC97F")) +
+ scale_fill_manual(values = c("#1F78B4", "#7FC97F"))
+ggsave("Figures/Whitetail - Model 1-5.jpg", width = 6, height = 6, dpi = 700)
+
+
+# Model 8 ----------
 prediction2data <- alldata %>% 
   filter(Age_Class != "Mixed", Number_of_Relevant_Predators != 0) %>%
   mutate(Pred2 = Number_of_Relevant_Predators * Number_of_Relevant_Predators)
@@ -493,24 +590,29 @@ split_data <- lapply(common_names, function(name) {
 
 list2env(setNames(split_data, paste0(df_names, "5")), envir = .GlobalEnv)
 
-## Bighorn -------------
+## Bighorn ----------
 # Analysis was not run because predator species richness was equal across all sites
 
-## Caribou -------------
-mod5 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+## Caribou ----------
+mod8 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Known_Mortalities,
                 data=Caribou5)
-summary(mod5)
+summary(mod8)
+mod9 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+                betabinomial(link = "logit"),
+                weights=Known_Mortalities,
+                data=Caribou5)
+summary(mod9)
 
-### Plot ------------------------
+### Plot ----------
 tp <- range(Caribou5$Number_of_Relevant_Predators)
 nd <- expand.grid(Age_Class=factor(levels(Caribou5$Age_Class), levels=levels(Caribou5$Age_Class)),
                   Number_of_Relevant_Predators = seq(tp[1], tp[2], by=1)) %>% 
   mutate(random = levels(Caribou5$random)[1],
          Known_Mortalities = 0) 
 
-pred <- predict(mod5, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+pred <- predict(mod8, newdata = nd, se.fit = TRUE, re.form = NA) %>%
   as.data.frame() %>%
   mutate(lower = fit - 1.96 * se.fit,
          upper = fit + 1.96 * se.fit,
@@ -533,21 +635,26 @@ fill="Age class") +
   theme(legend.position = "none") +
   theme(plot.title = element_text(hjust = 0.5))
 
-## Elk ---------------
-mod5 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+## Elk ----------
+mod8 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                 betabinomial(link = "logit"),
+                 weights=Known_Mortalities,
+                 data=Elk5)
+summary(mod8)
+mod9 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Known_Mortalities,
                 data=Elk5)
-summary(mod5)
+summary(mod9)
 
-### Plot ------------------------
+### Plot ----------
 tp <- range(Elk5$Number_of_Relevant_Predators)
 nd <- expand.grid(Age_Class=factor(levels(Elk5$Age_Class), levels=levels(Elk5$Age_Class)),
                   Number_of_Relevant_Predators = seq(tp[1], tp[2], by=1)) %>% 
   mutate(random = levels(Elk5$random)[1],
          Known_Mortalities = 0) 
 
-pred <- predict(mod5, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+pred <- predict(mod9, newdata = nd, se.fit = TRUE, re.form = NA) %>%
   as.data.frame() %>%
   mutate(lower = fit - 1.96 * se.fit,
          upper = fit + 1.96 * se.fit,
@@ -572,30 +679,38 @@ fill="Age class") +
   theme(axis.title.x = element_blank()) +
   theme(plot.title = element_text(hjust = 0.5))
 
-## Moose -------------------------
-mod5 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+## Moose ----------
+mod8 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Known_Mortalities,
                 data=Moose5)
-summary(mod5)
-# Analysis was concluded:
-#moose model failed to converge
+summary(mod8)
+# mod9 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+#                 betabinomial(link = "logit"),
+#                 weights=Known_Mortalities,
+#                 data=Moose5)
+# summary(mod9)
 
-## Mule deer -----------------------------------
-mod5 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+## Mule deer ----------
+mod8 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                 betabinomial(link = "logit"),
+                 weights=Known_Mortalities,
+                 data=Muledeer5)
+summary(mod8)
+mod9 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Known_Mortalities,
                 data=Muledeer5)
-summary(mod5)
+summary(mod9)
 
-### Plot ------------------------
+### Plot ----------
 tp <- range(Muledeer5$Number_of_Relevant_Predators)
 nd <- expand.grid(Age_Class=factor(levels(Muledeer5$Age_Class), levels=levels(Muledeer5$Age_Class)),
                   Number_of_Relevant_Predators = seq(tp[1], tp[2], by=1)) %>% 
   mutate(random = levels(Muledeer5$random)[1],
          Known_Mortalities = 0) 
 
-pred <- predict(mod5, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+pred <- predict(mod8, newdata = nd, se.fit = TRUE, re.form = NA) %>%
   as.data.frame() %>%
   mutate(lower = fit - 1.96 * se.fit,
          upper = fit + 1.96 * se.fit,
@@ -623,20 +738,25 @@ fill="Age class") +
 # Analysis was not run because predator species richness was equal across all sites
 
 ## Whitetail ---------------------
-mod5 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
+mod8 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators + Age_Class + (1|random) + (1|Midpoint_Year),
+                 betabinomial(link = "logit"),
+                 weights=Known_Mortalities,
+                 data=Whitetail5)
+summary(mod8)
+mod9 <- glmmTMB(PredPropMort ~ Number_of_Relevant_Predators*Age_Class + (1|random) + (1|Midpoint_Year),
                 betabinomial(link = "logit"),
                 weights=Known_Mortalities,
                 data=Whitetail5)
-summary(mod5)
+summary(mod9)
 
-### Plot ------------------------
+### Plot ----------
 tp <- range(Whitetail5$Number_of_Relevant_Predators)
 nd <- expand.grid(Age_Class=factor(levels(Whitetail5$Age_Class), levels=levels(Whitetail5$Age_Class)),
                   Number_of_Relevant_Predators = seq(tp[1], tp[2], by=1)) %>% 
   mutate(random = levels(Whitetail5$random)[1],
          Known_Mortalities = 0) 
 
-pred <- predict(mod5, newdata = nd, se.fit = TRUE, re.form = NA) %>%
+pred <- predict(mod9, newdata = nd, se.fit = TRUE, re.form = NA) %>%
   as.data.frame() %>%
   mutate(lower = fit - 1.96 * se.fit,
          upper = fit + 1.96 * se.fit,
@@ -672,4 +792,4 @@ Combo1 <- ggarrange(Caribou1 + rremove("ylab") + rremove("xlab"),
                     font.label = list(size = 12, color = "black", family = NULL, position = "top"))
 Combo1 <- annotate_figure(Combo1, left = textGrob("Predation proportion", rot = 90, vjust = 1, gp = gpar(cex = 1.3)), bottom = textGrob("Predator species richness", gp = gpar(cex = 1.3)))
 Combo1
-ggsave("Figures/All Species - Model 5.jpg", width = 6.5, height = 6.5, dpi = 700)
+ggsave("Figures/All Species - Model 8-9.jpg", width = 6.5, height = 6.5, dpi = 700)
