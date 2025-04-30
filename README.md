@@ -22,7 +22,7 @@ Nathaniel H. Wehr (nathanielwehr@gmail.com)
 
 ## Information
 
-Digital Object Identifier (DOI):
+Digital Object Identifier (DOI): https://doi.org/10.5281/zenodo.15311508
 
 Repository Type: Data; Program R script
 
