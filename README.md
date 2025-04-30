@@ -47,6 +47,9 @@ This repository also includes R code associated with our analysis of the meta-an
 The contents of this repository may be freely used and modified, so long as the suggested citations above are appropriately referenced.
 
 References:
+
 Hill JE, DeVault TL, and Belant JL (2019a) Cause‐specific mortality of the world’s terrestrial vertebrates. Global Ecology and Biogeography 28:680–689.
+
 Hill JE, Devault TL, and Belant JL (2019b) CauseSpec: a database of global terrestrial vertebrate cause‐specific mortality. Ecology 100:e02865.
+
 Wehr NH, Boone HM, van den Bosch M, Zubiria Perez A, Wehr KL, Wehr SR, and Belant JL (2025) Interspecific carnivore competition and ungulate predation correlate with predator species richness. Ecology
