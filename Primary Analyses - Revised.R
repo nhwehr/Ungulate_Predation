@@ -1,7 +1,7 @@
 ###### Full analysis for "Interspecific carnivore competition and ungulate predation correlate to predator species richness"
 
 ##### Code written by Nathaniel H. Wehr, Hailey M. Boone, Merijn van den Bosch, and Alejandra Zubiria Perez
-### Last edited on 6 March 2025 ###
+### Last edited on 30 April 2025 ###
 
 # Data Prep ----------
 # Load libraries
@@ -15,7 +15,7 @@ library(ggeffects)
 library(ggpubr)
  
 # Load data
-data <- read.csv("Raw data/Analyzed Dataset - V11.csv", header = T)
+data <- read.csv("Data/Analyzed Dataset - V11.csv", header = T)
 
 ## Data manipulation and cleanup
 columns <- c("Grizzly_Bear_Present", "Black_Bear_Present", "Mountain_Lion_Present", 
